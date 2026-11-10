@@ -1,90 +1,382 @@
-def tampilkan_menu(daftar_barang):
-    print("\n=================================")
-    print("      DAFTAR BARANG TOKO         ")
-    print("=================================")
-    print(f"{'Kode':<6} | {'Nama Barang':<15} | {'Harga':<10}")
-    print("---------------------------------")
-    for kode, detail in daftar_barang.items():
-        print(f"{kode:<6} | {detail['nama']:<15} | Rp {detail['harga']:,}")
-    print("=================================\n")
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Daftar Belanjaan</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛒 Daftar Belanjaan</h1>
+            <p>Kelola kebutuhan belanjaanmu dengan mudah</p>
+        </header>
 
-def main():
-    # Database barang sederhana
-    daftar_barang = {
-        "1": {"nama": "Beras 5kg", "harga": 75000},
-        "2": {"nama": "Minyak 2L", "harga": 35000},
-        "3": {"nama": "Gula 1kg", "harga": 18000},
-        "4": {"nama": "Mie Instan", "harga": 3500},
-        "5": {"nama": "Susu UHT", "harga": 17000}
+        <!-- Form Tambah Barang -->
+        <form id="shopping-form">
+            <div class="input-group">
+                <input type="text" id="item-name" placeholder="Nama barang (contoh: Susu, Roti)..." required autocomplete="off">
+                <input type="number" id="item-qty" placeholder="Jumlah" min="1" value="1" required>
+                <button type="submit" id="add-btn">Tambah</button>
+            </div>
+        </form>
+
+        <!-- Filter & Aksi -->
+        <div class="actions-bar">
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">Semua</button>
+                <button class="filter-btn" data-filter="pending">Belum</button>
+                <button class="filter-btn" data-filter="completed">Selesai</button>
+            </div>
+            <button id="clear-btn" class="secondary-btn">Hapus Semua</button>
+        </div>
+
+        <!-- Daftar Item -->
+        <ul id="shopping-list">
+            <!-- Data akan dimuat melalui JavaScript -->
+        </ul>
+
+        <!-- Ringkasan -->
+        <div class="summary">
+            <span>Total Item: <strong id="total-count">0</strong></span>
+            <span>Belum Dibeli: <strong id="pending-count">0</strong></span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+:root {
+    --primary-color: #4f46e5;
+    --primary-hover: #4338ca;
+    --bg-color: #f8fafc;
+    --card-bg: #ffffff;
+    --text-color: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --danger-color: #ef4444;
+    --success-color: #22c55e;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.container {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 480px;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+header h1 {
+    font-size: 1.75rem;
+    color: var(--primary-color);
+    margin-bottom: 0.25rem;
+}
+
+header p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.input-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+}
+
+input[type="text"] {
+    flex: 2;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input[type="number"] {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input:focus {
+    border-color: var(--primary-color);
+}
+
+button {
+    padding: 10px 16px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: var(--primary-hover);
+}
+
+.actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    gap: 10px;
+}
+
+.filters {
+    display: flex;
+    gap: 4px;
+}
+
+.filter-btn {
+    background: #f1f5f9;
+    color: var(--text-muted);
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+}
+
+.filter-btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.secondary-btn {
+    background: transparent;
+    color: var(--danger-color);
+    border: 1px solid var(--danger-color);
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+}
+
+.secondary-btn:hover {
+    background: var(--danger-color);
+    color: white;
+}
+
+ul {
+    list-style: none;
+    max-height: 280px;
+    overflow-y: auto;
+    margin-bottom: 1.25rem;
+    padding-right: 4px;
+}
+
+li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+    animation: fadeIn 0.3s ease;
+}
+
+li.completed .item-text {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.item-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.item-info input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+}
+
+.badge {
+    background: #e0e7ff;
+    color: var(--primary-color);
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.delete-btn {
+    background: none;
+    color: var(--danger-color);
+    padding: 4px 8px;
+    font-size: 0.85rem;
+}
+
+.delete-btn:hover {
+    background: #fee2e2;
+    color: var(--danger-color);
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2rem 0;
+    font-size: 0.9rem;
+}
+
+.summary {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+const form = document.getElementById('shopping-form');
+const itemNameInput = document.getElementById('item-name');
+const itemQtyInput = document.getElementById('item-qty');
+const shoppingListEl = document.getElementById('shopping-list');
+const clearBtn = document.getElementById('clear-btn');
+const totalCountEl = document.getElementById('total-count');
+const pendingCountEl = document.getElementById('pending-count');
+const filterBtns = document.querySelectorAll('.filter-btn');
+
+let shoppingItems = JSON.parse(localStorage.getItem('shopping_items')) || [];
+let currentFilter = 'all';
+
+// Event Listeners
+form.addEventListener('submit', addItem);
+clearBtn.addEventListener('click', clearAllItems);
+
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentFilter = e.target.getAttribute('data-filter');
+        renderItems();
+    });
+});
+
+function addItem(e) {
+    e.preventDefault();
+    const name = itemNameInput.value.trim();
+    const qty = parseInt(itemQtyInput.value) || 1;
+
+    if (!name) return;
+
+    const newItem = {
+        id: Date.now(),
+        name: name,
+        qty: qty,
+        completed: false
+    };
+
+    shoppingItems.push(newItem);
+    saveAndRender();
+    
+    itemNameInput.value = '';
+    itemQtyInput.value = '1';
+    itemNameInput.focus();
+}
+
+function toggleItem(id) {
+    shoppingItems = shoppingItems.map(item => {
+        if (item.id === id) {
+            return { ...item, completed: !item.completed };
+        }
+        return item;
+    });
+    saveAndRender();
+}
+
+function deleteItem(id) {
+    shoppingItems = shoppingItems.filter(item => item.id !== id);
+    saveAndRender();
+}
+
+function clearAllItems() {
+    if (confirm('Yakin ingin menghapus seluruh daftar belanjaan?')) {
+        shoppingItems = [];
+        saveAndRender();
+    }
+}
+
+function saveAndRender() {
+    localStorage.setItem('shopping_items', JSON.stringify(shoppingItems));
+    renderItems();
+}
+
+function renderItems() {
+    shoppingListEl.innerHTML = '';
+
+    const filteredItems = shoppingItems.filter(item => {
+        if (currentFilter === 'pending') return !item.completed;
+        if (currentFilter === 'completed') return item.completed;
+        return true;
+    });
+
+    if (filteredItems.length === 0) {
+        shoppingListEl.innerHTML = `<li class="empty-state">Tidak ada daftar belanjaan.</li>`;
+    } else {
+        filteredItems.forEach(item => {
+            const li = document.createElement('li');
+            if (item.completed) li.classList.add('completed');
+
+            li.innerHTML = `
+                <div class="item-info" onclick="toggleItem(${item.id})">
+                    <input type="checkbox" ${item.completed ? 'checked' : ''} onclick="event.stopPropagation(); toggleItem(${item.id})">
+                    <span class="item-text">${escapeHtml(item.name)}</span>
+                    <span class="badge">${item.qty}x</span>
+                </div>
+                <button class="delete-btn" onclick="deleteItem(${item.id})">Hapus</button>
+            `;
+            shoppingListEl.appendChild(li);
+        });
     }
 
-    keranjang = []
-    total_harga = 0
+    // Update Statistik Ringkasan
+    totalCountEl.textContent = shoppingItems.length;
+    pendingCountEl.textContent = shoppingItems.filter(i => !i.completed).length;
+}
 
-    print("Selamat Datang di Aplikasi Kasir Belanja!")
-    tampilkan_menu(daftar_barang)
+// Fungsi pengaman XSS sederhana
+function escapeHtml(str) {
+    return str.replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+    );
+}
 
-    while True:
-        pilihan = input("Masukkan kode barang yang ingin dibeli (atau ketik 'selesai' untuk bayar): ").strip()
-        
-        if pilihan.lower() == 'selesai':
-            break
-        
-        if pilihan in daftar_barang:
-            try:
-                jumlah = int(input(f"Berapa banyak {daftar_barang[pilihan]['nama']} yang dibeli? "))
-                if jumlah <= 0:
-                    print("Jumlah harus lebih dari 0!")
-                    continue
-                
-                barang = daftar_barang[pilihan]
-                subtotal = barang['harga'] * jumlah
-                
-                # Simpan ke keranjang
-                keranjang.append({
-                    "nama": barang['nama'],
-                    "harga": barang['harga'],
-                    "jumlah": jumlah,
-                    "subtotal": subtotal
-                })
-                
-                total_harga += subtotal
-                print(f"✓ Berhasil menambahkan {jumlah} {barang['nama']} ke keranjang.\n")
-                
-            except ValueError:
-                print("⚠️ Masukkan jumlah dalam bentuk angka!")
-        else:
-            print("⚠️ Kode barang tidak ditemukan! Silakan lihat daftar menu.")
-
-    # Jika keranjang kosong
-    if not keranjang:
-        print("\nTerima kasih telah berkunjung. Anda tidak membeli barang apapun.")
-        return
-
-    # Hitung Diskon (Contoh: Diskon 10% jika belanja di atas Rp 100.000)
-    diskon = 0
-    if total_harga >= 100000:
-        diskon = int(total_harga * 0.10)
-    
-    total_akhir = total_harga - diskon
-
-    # Cetak Struk Belanja
-    print("\n\n=========================================")
-    print("              STRUK BELANJA              ")
-    print("=========================================")
-    print(f"{'Barang':<15} @{'Harga':<8} x{'Qty':<4} {'Subtotal':<10}")
-    print("-----------------------------------------")
-    for item in keranjang:
-        print(f"{item['nama']:<15} Rp{item['harga']:<7} x{item['jumlah']:<4} Rp{item['subtotal']:,}")
-    print("-----------------------------------------")
-    print(f"{'Total Kotor':<30} Rp{total_harga:,}")
-    if diskon > 0:
-        print(f"{'Diskon (10%)':<30} -Rp{diskon:,}")
-    print("-----------------------------------------")
-    print(f"{'TOTAL BERSIH':<30} Rp{total_akhir:,}")
-    print("=========================================")
-    print("       Terima Kasih Telah Berbelanja!    ")
-    print("=========================================\n")
-
-if __name__ == "__main__":
-    main()
+// Render awal saat halaman dimuat
+renderItems();
